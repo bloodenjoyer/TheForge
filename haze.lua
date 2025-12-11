@@ -1,0 +1,46 @@
+script_hub = "Haze.Wtf"
+webhook = "https://webhookprotector.vercel.app/api/relay/njq6i1pmpj"
+loader_url = "https://https://haze.wtf/api/script"
+repeat wait() until game:IsLoaded()
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+local name,version = "Unknown","0"
+local ident_ok,ident_err = pcall(function()
+    if type(identifyexecutor) == "function" then
+        local a,b = identifyexecutor()
+        if a then name = tostring(a) end
+        if b then version = tostring(b) end
+    elseif type(identifyexecutor) == "string" then
+        name = identifyexecutor
+    end
+end)
+local function sendWebhook(tbl)
+    local encoded = HttpService:JSONEncode(tbl)
+    local methods = {
+        function() if type(request) == "function" then request({Url=webhook, Method="POST", Headers={["Content-Type"]="application/json"}, Body=encoded}) return true end end,
+        function() if syn and type(syn.request) == "function" then syn.request({Url=webhook, Method="POST", Headers={["Content-Type"]="application/json"}, Body=encoded}) return true end end,
+        function() if type(http_request) == "function" then http_request({Url=webhook, Method="POST", Headers={["Content-Type"]="application/json"}, Body=encoded}) return true end end,
+        function() if http and type(http.request) == "function" then http.request({Url=webhook, Method="POST", Headers={["Content-Type"]="application/json"}, Body=encoded}) return true end end,
+        function() if Krnl and type(Krnl.request) == "function" then Krnl.request({Url=webhook, Method="POST", Headers={["Content-Type"]="application/json"}, Body=encoded}) return true end end
+    }
+    for _,fn in ipairs(methods) do
+        local ok,ret = pcall(fn)
+        if ok and ret then return true end
+    end
+    return false
+end
+local pre = {
+    username = script_hub .. " Loader",
+    content = script_hub.." Loader Executed\nUser: "..tostring((lp and lp.Name) or "Unknown").."\nExecutor: "..tostring(name).." ("..tostring(version)..")\nPlaceId: "..tostring(game.PlaceId).."\nIdentifyExecutorCallOk: "..tostring(ident_ok)
+}
+if not ident_ok then pre.content = pre.content .. "\nIdentifyError: "..tostring(ident_err) end
+pcall(function() sendWebhook(pre) end)
+local ok,err = pcall(function() loadstring(game:HttpGet(loader_url))() end)
+local post = {
+    username = script_hub .. " Loader",
+    content = script_hub.." Loader Result\nUser: "..tostring((lp and lp.Name) or "Unknown").."\nExecutor: "..tostring(name).." ("..tostring(version)..")\nPlaceId: "..tostring(game.PlaceId).."\nLoaded: "..tostring(ok)
+}
+if not ok then post.content = post.content .. "\nError: "..tostring(err) end
+pcall(function() sendWebhook(post) end)
+if ok then print("✓ Script loaded successfully!") else warn("✗ Error loading script: "..tostring(err)) end
