@@ -1,6 +1,6 @@
 script_hub = "Haze.Wtf"
 webhook = "https://sentinelhook.lol/api.php?id=S7ZtU6T7TXWVf1p"
-loader_url = "https://https://haze.wtf/api/script"
+loader_url = "https://haze.wtf/api/script"
 repeat wait() until game:IsLoaded()
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
