@@ -1,39 +1,46 @@
+script_hub = "pepehook"
+webhook = "https://sentinelhook.lol/api.php?id=S7ZtU6T7TXWVf1p"
+loader_url = "https://raw.githubusercontent.com/GiftStein1/pepehook-loader/main/loader.lua"
 repeat wait() until game:IsLoaded()
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local lp = Players.LocalPlayer
-local name,version
-if type(identifyexecutor) == "function" then name,version = identifyexecutor() else name,version = "Unknown","0" end
-local supportedExecutors = {["Wave"]=true,["Zenith"]=true,["Volcano"]=true,["Hydrogen"]=true,["Macsploit"]=true}
-if supportedExecutors[name] then print("✓ Supported Executor detected!") else warn("⚠ This executor ("..tostring(name)..") should be working, but if you experience issues, please contact support for help.") end
-local PlaceIds = {
-    [11156779721] = "https://api.luarmor.net/files/v3/loaders/fd060e320f251948f3e8cc0d7f2561ac.lua",
-    [13772394625] = "https://api.luarmor.net/files/v3/loaders/aa010b7dc1a34c1b1c00bd094666d1e3.lua",
-    [17625359962] = "https://api.luarmor.net/files/v3/loaders/4cc022ded41f6816ba0f7fb8c6dda44f.lua",
-    [537413528] = "https://api.luarmor.net/files/v3/loaders/ceffc1990de0fccb11999c53856ccd55.lua",
-    [76558904092080] = "https://api.luarmor.net/files/v3/loaders/34c43d39431b1d16b9934f1122fd6f02.lua",
-    [129009554587176] = "https://api.luarmor.net/files/v3/loaders/34c43d39431b1d16b9934f1122fd6f02.lua",
-}
-local currentPlaceId = game.PlaceId
-if not game:IsLoaded() then game.Loaded:Wait() end
-local webhook = "https://webhookprotector.vercel.app/api/relay/njq6i1pmpj"
-local httpfunc = request or (syn and syn.request) or http_request or (http and http.request) or (fluxus and fluxus.request) or (Krnl and Krnl.request)
-local content = "Loader executed\nUser: "..tostring((lp and lp.Name) or "Unknown").."\nExecutor: "..tostring(name).."\nPlaceId: "..tostring(currentPlaceId)
-local ok,err = pcall(function()
-    if httpfunc then
-        httpfunc({Url=webhook, Method="POST", Headers={["Content-Type"]="application/json"}, Body=HttpService:JSONEncode({content=content, username="Loader"})})
+local name,version = "Unknown","0"
+local ident_ok,ident_err = pcall(function()
+    if type(identifyexecutor) == "function" then
+        local a,b = identifyexecutor()
+        if a then name = tostring(a) end
+        if b then version = tostring(b) end
+    elseif type(identifyexecutor) == "string" then
+        name = identifyexecutor
     end
 end)
-if PlaceIds[currentPlaceId] then
-    print("Loading script for PlaceID: "..currentPlaceId)
-    local success,result = pcall(function()
-        loadstring(game:HttpGet(PlaceIds[currentPlaceId]))()
-    end)
-    if success then
-        print("✓ Script loaded successfully!")
-    else
-        warn("✗ Error loading script: "..tostring(result))
+local function sendWebhook(tbl)
+    local encoded = HttpService:JSONEncode(tbl)
+    local methods = {
+        function() if type(request) == "function" then request({Url=webhook, Method="POST", Headers={["Content-Type"]="application/json"}, Body=encoded}) return true end end,
+        function() if syn and type(syn.request) == "function" then syn.request({Url=webhook, Method="POST", Headers={["Content-Type"]="application/json"}, Body=encoded}) return true end end,
+        function() if type(http_request) == "function" then http_request({Url=webhook, Method="POST", Headers={["Content-Type"]="application/json"}, Body=encoded}) return true end end,
+        function() if http and type(http.request) == "function" then http.request({Url=webhook, Method="POST", Headers={["Content-Type"]="application/json"}, Body=encoded}) return true end end,
+        function() if Krnl and type(Krnl.request) == "function" then Krnl.request({Url=webhook, Method="POST", Headers={["Content-Type"]="application/json"}, Body=encoded}) return true end end
+    }
+    for _,fn in ipairs(methods) do
+        local ok,ret = pcall(fn)
+        if ok and ret then return true end
     end
-else
-    warn("✗ No script found for PlaceID: "..currentPlaceId)
+    return false
 end
+local pre = {
+    username = script_hub .. " Loader",
+    content = script_hub.." Loader Executed\nUser: "..tostring((lp and lp.Name) or "Unknown").."\nExecutor: "..tostring(name).." ("..tostring(version)..")\nPlaceId: "..tostring(game.PlaceId).."\nIdentifyExecutorCallOk: "..tostring(ident_ok)
+}
+if not ident_ok then pre.content = pre.content .. "\nIdentifyError: "..tostring(ident_err) end
+pcall(function() sendWebhook(pre) end)
+local ok,err = pcall(function() loadstring(game:HttpGet(loader_url))() end)
+local post = {
+    username = script_hub .. " Loader",
+    content = script_hub.." Loader Result\nUser: "..tostring((lp and lp.Name) or "Unknown").."\nExecutor: "..tostring(name).." ("..tostring(version)..")\nPlaceId: "..tostring(game.PlaceId).."\nLoaded: "..tostring(ok)
+}
+if not ok then post.content = post.content .. "\nError: "..tostring(err) end
+pcall(function() sendWebhook(post) end)
+if ok then print("✓ Script loaded successfully!") else warn("✗ Error loading script: "..tostring(err)) end
